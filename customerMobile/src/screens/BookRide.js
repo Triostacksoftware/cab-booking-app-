@@ -20,7 +20,8 @@ export default function BookRide({ userData, setScreen, data }) {
 
   // Fake cost
   const sharedRideFare = 30;
-  const totalFare = sharedRideFare;
+  const personalRideFare = 100;
+  const totalFare = data.rideType=='shared'?30:100;
 
   const popularLocations = [
     "Home",

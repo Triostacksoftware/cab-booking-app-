@@ -70,7 +70,7 @@ export default function App() {
   return (
     <>
       {renderScreen()}
-      <BottomBar />
+      <BottomBar screen={screen} setScreen={setScreen} />
     </>
   );
 }
