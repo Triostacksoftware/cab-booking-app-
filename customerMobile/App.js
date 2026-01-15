@@ -104,7 +104,9 @@ export default function App() {
       
       case "RIDE":
         return (
-          <MapRideScreen />
+          <MapRideScreen
+            setScreen={setScreen}
+          />
         )
         
       default:
@@ -119,4 +121,3 @@ export default function App() {
     </>
   );
 }
-

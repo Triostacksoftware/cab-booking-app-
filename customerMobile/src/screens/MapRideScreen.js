@@ -1,40 +1,92 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Platform,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Linking } from "react-native";
 
-const rideData = {
-  status: "DRIVER_ASSIGNED",
-  eta: "3 min",
+/* ---------- MOCK BACKEND DATA ---------- */
 
+const backendRideMeta = {
+  otp: "4821", // comes from backend
+};
+
+const rideData = {
   driver: {
     name: "Aksh Tiwari",
     rating: 4.8,
-    mobileNumber:'9990074614',
+    mobileNumber: "9990074614",
   },
 
   vehicle: {
     model: "Tata Nano",
     number: "DL01AB2345",
     color: "TriColor",
-    type: "Huge",
+    type: "Mini",
   },
 
   trip: {
     pickup: "Connaught Place",
     drop: "IGI Airport",
     fare: 100,
-    payment: "CASH",
+    payment: "UPI",
   },
 };
 
-export default function MapRideScreen() {
+/* ---------- MAIN COMPONENT ---------- */
+
+export default function MapRideScreen({ setScreen }) {
+  const [rideState, setRideState] = useState("SEARCHING_DRIVER");
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+
+  /* ---------- STATE FLOW (SIMULATED) ---------- */
+
+  useEffect(() => {
+    if (rideState === "SEARCHING_DRIVER") {
+      setTimeout(() => setRideState("DRIVER_ASSIGNED"), 2000);
+    }
+
+    if (rideState === "DRIVER_ASSIGNED") {
+      setTimeout(() => setRideState("DRIVER_ARRIVING"), 3000);
+    }
+
+    if (rideState === "ON_TRIP") {
+      setTimeout(() => {
+        setRideState("COMPLETED");
+        setShowCompletionModal(true);
+      }, 6000);
+    }
+  }, [rideState]);
+
+  /* ---------- UI BLOCKS ---------- */
+
+  const OtpVerification = () => (
+    <View style={styles.otpCard}>
+      <Text style={styles.otpTitle}>Verify Ride</Text>
+      <Text style={styles.otpSubtitle}>
+        Tell this code to the driver to start the ride
+      </Text>
+
+      <View style={styles.otpBox}>
+        <Text style={styles.otpText}>{backendRideMeta.otp}</Text>
+      </View>
+
+      <TouchableOpacity
+        style={styles.verifyBtn}
+        onPress={() => setRideState("ON_TRIP")}
+      >
+        <Text style={styles.verifyText}>Driver Verified</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  /* ---------- RENDER ---------- */
+
   return (
     <View style={styles.container}>
       {/* MAP PLACEHOLDER */}
@@ -42,10 +94,14 @@ export default function MapRideScreen() {
         <Text style={styles.mapText}>MAP VIEW</Text>
       </View>
 
-      {/* TOP STATUS BAR */}
+      {/* TOP STATUS */}
       <View style={styles.topStatus}>
         <Text style={styles.statusText}>
-          LIVE • Driver arriving in {rideData.eta}
+          {rideState === "SEARCHING_DRIVER" && "Finding a driver..."}
+          {rideState === "DRIVER_ASSIGNED" && "Driver assigned"}
+          {rideState === "DRIVER_ARRIVING" && "Driver arriving"}
+          {rideState === "VERIFY_CODE" && "Verify OTP to start ride"}
+          {rideState === "ON_TRIP" && "On Trip"}
         </Text>
       </View>
 
@@ -65,12 +121,17 @@ export default function MapRideScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity style={styles.iconButton} onPress={()=>{Linking.openURL(`tel:${rideData.driver.mobileNumber}`)}}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() =>
+              Linking.openURL(`tel:${rideData.driver.mobileNumber}`)
+            }
+          >
             <Ionicons name="call-outline" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        {/* VEHICLE INFO */}
+        {/* VEHICLE */}
         <View style={styles.infoCard}>
           <Text style={styles.infoPrimary}>
             {rideData.vehicle.color} {rideData.vehicle.model}
@@ -80,7 +141,7 @@ export default function MapRideScreen() {
           </Text>
         </View>
 
-        {/* TRIP SUMMARY */}
+        {/* TRIP */}
         <View style={styles.infoCard}>
           <Text style={styles.tripText}>
             Pickup → {rideData.trip.pickup}
@@ -95,62 +156,69 @@ export default function MapRideScreen() {
           </View>
         </View>
 
-        {/* SAFETY ACTIONS */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Ionicons name="share-outline" size={20} color="#aaa" />
-            <Text style={styles.actionText}>Share</Text>
+        {/* OTP BLOCK */}
+        {rideState === "DRIVER_ARRIVING" && (
+          <TouchableOpacity
+            style={styles.showOtpBtn}
+            onPress={() => setRideState("VERIFY_CODE")}
+          >
+            <Text style={styles.showOtpText}>Show Verification Code</Text>
           </TouchableOpacity>
+        )}
 
-          <TouchableOpacity style={styles.actionBtn}>
-            <Ionicons name="alert-circle-outline" size={20} color="#aaa" />
-            <Text style={styles.actionText}>Emergency</Text>
-          </TouchableOpacity>
-        </View>
+        {rideState === "VERIFY_CODE" && <OtpVerification />}
       </View>
+
+      {/* COMPLETION MODAL */}
+      <Modal transparent visible={showCompletionModal} animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Ionicons
+              name="checkmark-circle"
+              size={64}
+              color="#4CAF50"
+            />
+            <Text style={styles.modalTitle}>Trip Completed</Text>
+            <Text style={styles.modalSub}>
+              Thanks for riding with us
+            </Text>
+
+            <TouchableOpacity
+              style={styles.modalBtn}
+              onPress={() => {
+                setShowCompletionModal(false);
+                setScreen({ NAME: "HOME", DATA: {} });
+              }}
+            >
+              <Text style={styles.modalBtnText}>Go Home</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
+/* ---------- STYLES ---------- */
 
-  /* MAP */
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#000" },
+
   mapPlaceholder: {
     flex: 1,
     backgroundColor: "#1a1a1a",
     alignItems: "center",
     justifyContent: "center",
   },
-  mapText: {
-    color: "#555",
-    letterSpacing: 2,
-    fontSize: 14,
-  },
+  mapText: { color: "#555", letterSpacing: 2 },
 
-  /* TOP STATUS */
   topStatus: {
     position: "absolute",
     top: 50,
     left: 20,
-    right: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
   },
-  statusText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  cancelText: {
-    color: "#ff4d4d",
-    fontWeight: "600",
-  },
+  statusText: { color: "#fff", fontWeight: "600" },
 
-  /* BOTTOM SHEET */
   bottomSheet: {
     position: "absolute",
     bottom: 0,
@@ -159,21 +227,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
-
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOpacity: 0.2,
-        shadowRadius: 20,
-        shadowOffset: { width: 0, height: -6 },
-      },
-      android: {
-        elevation: 30,
-      },
-    }),
+    elevation: 30,
   },
 
-  /* DRIVER */
   driverRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -186,73 +242,104 @@ const styles = StyleSheet.create({
     backgroundColor: "#333",
     marginRight: 12,
   },
-  driverName: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  driverRating: {
-    color: "#aaa",
-    fontSize: 13,
-  },
-  vehicleNumber: {
-    color: "#fff",
-    fontWeight: "600",
-    marginTop: 2,
-  },
+  driverName: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  driverRating: { color: "#aaa", fontSize: 13 },
+  vehicleNumber: { color: "#fff", fontWeight: "600" },
   iconButton: {
     padding: 10,
     backgroundColor: "#1f1f1f",
     borderRadius: 12,
   },
 
-  /* INFO CARDS */
   infoCard: {
     backgroundColor: "#111",
     borderRadius: 14,
     padding: 14,
     marginBottom: 12,
   },
-  infoPrimary: {
-    color: "#fff",
-    fontWeight: "700",
-  },
-  infoSecondary: {
-    color: "#888",
-    marginTop: 4,
-  },
+  infoPrimary: { color: "#fff", fontWeight: "700" },
+  infoSecondary: { color: "#888", marginTop: 4 },
 
-  tripText: {
-    color: "#ccc",
-    marginBottom: 4,
-  },
-
+  tripText: { color: "#ccc", marginBottom: 4 },
   fareRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 10,
   },
-  fare: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  payment: {
-    color: "#aaa",
-  },
+  fare: { color: "#fff", fontSize: 18, fontWeight: "700" },
+  payment: { color: "#aaa" },
 
-  /* ACTIONS */
-  actionsRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+  showOtpBtn: {
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  showOtpText: { color: "#000", fontWeight: "700" },
+
+  otpCard: {
+    backgroundColor: "#111",
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
     marginTop: 10,
   },
-  actionBtn: {
-    alignItems: "center",
-    gap: 4,
-  },
-  actionText: {
+  otpTitle: { color: "#fff", fontSize: 18, fontWeight: "700" },
+  otpSubtitle: {
     color: "#aaa",
-    fontSize: 12,
+    textAlign: "center",
+    marginVertical: 8,
   },
+  otpBox: {
+    marginVertical: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: "#000",
+    borderWidth: 1,
+    borderColor: "#333",
+  },
+  otpText: {
+    color: "#fff",
+    fontSize: 28,
+    letterSpacing: 4,
+    fontWeight: "700",
+  },
+  verifyBtn: {
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+  },
+  verifyText: { color: "#000", fontWeight: "700" },
+
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalCard: {
+    width: "80%",
+    backgroundColor: "#111",
+    borderRadius: 20,
+    padding: 24,
+    alignItems: "center",
+  },
+  modalTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 12,
+  },
+  modalSub: { color: "#aaa", marginVertical: 8 },
+  modalBtn: {
+    marginTop: 16,
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 14,
+  },
+  modalBtnText: { color: "#000", fontWeight: "700" },
 });
