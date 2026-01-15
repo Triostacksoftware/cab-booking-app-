@@ -73,8 +73,9 @@ const AuthScreen = ({setIsLoggedIn}) => {
   const handleContinue = () => {
     const userData = {
       fullName,
-      mobileNumber: '+91' + mobileNumber,
-      selectedArea,
+      mobileNumber: mobileNumber,
+      city: selectedArea,
+      balance:0
     };
     
     console.log('User data:', userData);

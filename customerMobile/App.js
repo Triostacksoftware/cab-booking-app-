@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
 import BottomBar from "./src/components/BottomBar";
 import BookRide from "./src/screens/BookRide";
+import ProfileScreen from "./src/screens/ProfileScreen";
 
 
 export default function App() {
@@ -15,6 +16,22 @@ export default function App() {
     city: "",
     balance: 0,
   });
+
+  // const [storedUser, setStoredUser] = useState({});
+
+  const analChange = async ()=>{
+    if (!isLoggedIn){return}
+
+    const currentUserStored = await AsyncStorage.getItem("user");
+    if (currentUserStored != user){
+      setUser(currentUserStored);
+    }
+    return;
+  }
+
+  useEffect(()=>{
+    analChange();
+  }, [])
 
   const [screen, setScreen] = useState({
     NAME: "HOME",
@@ -37,6 +54,18 @@ export default function App() {
 
     getUser();
   }, []);
+
+  const checkUserData = async ()=>{
+    const isLoggedInStorage = await AsyncStorage.getItem('isUserLoggedIn');
+
+    if (!isLoggedInStorage){
+      setIsLoggedIn(false);
+    }
+  }
+
+  // useEffect(()=>{
+    
+  // }, [user])
 
   if (!isLoggedIn) {
     return <AuthScreen setIsLoggedIn={setIsLoggedIn} />;
@@ -62,6 +91,15 @@ export default function App() {
           />
         );
 
+        case "PROFILE":
+          return (
+            <ProfileScreen 
+              userData={user}
+              setScreen={setScreen}
+              setIsLoggedIn={setIsLoggedIn}
+            />
+          )
+
       default:
         return null;
     }
@@ -74,3 +112,4 @@ export default function App() {
     </>
   );
 }
+
