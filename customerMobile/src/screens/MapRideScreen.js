@@ -10,7 +10,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Linking } from "react-native";
 
-/* ---------- MOCK BACKEND DATA ---------- */
 
 const backendRideMeta = {
   otp: "4821", // comes from backend
@@ -38,13 +37,11 @@ const rideData = {
   },
 };
 
-/* ---------- MAIN COMPONENT ---------- */
 
 export default function MapRideScreen({ setScreen }) {
   const [rideState, setRideState] = useState("SEARCHING_DRIVER");
   const [showCompletionModal, setShowCompletionModal] = useState(false);
 
-  /* ---------- STATE FLOW (SIMULATED) ---------- */
 
   useEffect(() => {
     if (rideState === "SEARCHING_DRIVER") {
@@ -63,7 +60,6 @@ export default function MapRideScreen({ setScreen }) {
     }
   }, [rideState]);
 
-  /* ---------- UI BLOCKS ---------- */
 
   const OtpVerification = () => (
     <View style={styles.otpCard}>
@@ -85,7 +81,6 @@ export default function MapRideScreen({ setScreen }) {
     </View>
   );
 
-  /* ---------- RENDER ---------- */
 
   return (
     <View style={styles.container}>
@@ -199,7 +194,6 @@ export default function MapRideScreen({ setScreen }) {
   );
 }
 
-/* ---------- STYLES ---------- */
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },

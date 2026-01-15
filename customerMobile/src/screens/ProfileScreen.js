@@ -84,7 +84,6 @@ export default function ProfileScreen({ userData, setScreen, setIsLoggedIn }) {
         <Text style={styles.logoutText}>Log out</Text>
       </Pressable>
 
-      {/* ================= MODALS ================= */}
 
       {/* EDIT PROFILE MODAL */}
       <Modal transparent visible={activeModal === "EDIT_PROFILE"} animationType="slide">
@@ -155,7 +154,6 @@ export default function ProfileScreen({ userData, setScreen, setIsLoggedIn }) {
   );
 }
 
-/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   container: {
