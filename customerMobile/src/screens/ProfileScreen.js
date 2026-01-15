@@ -1,19 +1,19 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   Pressable,
+  Modal,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen({ userData, setScreen, setIsLoggedIn }) {
-
-    useEffect(()=>{
-        console.log(userData);
-    }, [])
-
+  const [activeModal, setActiveModal] = useState(null);
+  const [editName, setEditName] = useState(userData.fullName || "");
+  const [editCity, setEditCity] = useState(userData.city || "");
 
   const initials =
     userData?.fullName
@@ -45,6 +45,7 @@ export default function ProfileScreen({ userData, setScreen, setIsLoggedIn }) {
 
   return (
     <View style={styles.container}>
+      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{initials}</Text>
@@ -56,24 +57,105 @@ export default function ProfileScreen({ userData, setScreen, setIsLoggedIn }) {
         </Text>
       </View>
 
+      {/* WALLET */}
       <View style={styles.upiCard}>
-        <Text style={styles.upiLabel}>Wallet Balance</Text>
+        <Text style={styles.upiLabel}>UPI Wallet</Text>
         <Text style={styles.upiAmount}>₹{userData.balance}</Text>
       </View>
 
+      {/* ACTIONS */}
       <View style={styles.section}>
-        <Row icon="person-outline" label="Edit Profile" />
-        <Row icon="time-outline" label="Your Trips" />
+        <Row
+          icon="person-outline"
+          label="Edit Profile"
+          onPress={() => setActiveModal("EDIT_PROFILE")}
+        />
+        <Row
+          icon="time-outline"
+          label="My Trips"
+          onPress={() => setActiveModal("MY_TRIPS")}
+        />
         <Row icon="help-circle-outline" label="Help & Support" />
       </View>
 
+      {/* LOGOUT */}
       <Pressable onPress={logout} style={styles.logout}>
         <Ionicons name="log-out-outline" size={20} color="#ff4444" />
         <Text style={styles.logoutText}>Log out</Text>
       </Pressable>
+
+      {/* ================= MODALS ================= */}
+
+      {/* EDIT PROFILE MODAL */}
+      <Modal transparent visible={activeModal === "EDIT_PROFILE"} animationType="slide">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Edit Profile</Text>
+
+            <TextInput
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Full Name"
+              placeholderTextColor="#666"
+              style={styles.input}
+            />
+
+            <TextInput
+              value={editCity}
+              onChangeText={setEditCity}
+              placeholder="City"
+              placeholderTextColor="#666"
+              style={styles.input}
+            />
+
+            <Pressable
+              style={styles.primaryBtn}
+              onPress={() => {
+                // backend will handle this later
+                setActiveModal(null);
+              }}
+            >
+              <Text style={styles.primaryText}>Save Changes</Text>
+            </Pressable>
+
+            <Pressable onPress={() => setActiveModal(null)}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* MY TRIPS MODAL */}
+      <Modal transparent visible={activeModal === "MY_TRIPS"} animationType="slide">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Your Trips</Text>
+
+            {/* Dummy trip list */}
+            <View style={styles.tripItem}>
+              <Text style={styles.tripMain}>Connaught Place → IGI Airport</Text>
+              <Text style={styles.tripSub}>₹100 • Completed</Text>
+            </View>
+
+            <View style={styles.tripItem}>
+              <Text style={styles.tripMain}>Dwarka → Cyber Hub</Text>
+              <Text style={styles.tripSub}>₹180 • Completed</Text>
+            </View>
+
+            <Pressable
+              style={[styles.primaryBtn, { marginTop: 10 }]}
+              onPress={() => setActiveModal(null)}
+            >
+              <Text style={styles.primaryText}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
+
+/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   container: {
@@ -132,12 +214,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 28,
     fontWeight: "700",
-    marginVertical: 6,
-  },
-
-  upiSub: {
-    color: "#666",
-    fontSize: 12,
   },
 
   section: {
@@ -183,6 +259,72 @@ const styles = StyleSheet.create({
   logoutText: {
     color: "#ff4444",
     fontWeight: "600",
-    fontSize: 14,
+  },
+
+  /* MODAL */
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
+  },
+
+  modalCard: {
+    backgroundColor: "#111",
+    padding: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+
+  modalTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
+
+  input: {
+    backgroundColor: "#000",
+    borderRadius: 12,
+    padding: 14,
+    color: "#fff",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#222",
+  },
+
+  primaryBtn: {
+    backgroundColor: "#fff",
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+
+  primaryText: {
+    color: "#000",
+    fontWeight: "700",
+  },
+
+  cancelText: {
+    textAlign: "center",
+    marginTop: 12,
+    color: "#777",
+  },
+
+  tripItem: {
+    backgroundColor: "#000",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+
+  tripMain: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+
+  tripSub: {
+    color: "#888",
+    fontSize: 12,
+    marginTop: 4,
   },
 });
