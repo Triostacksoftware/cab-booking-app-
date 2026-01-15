@@ -44,6 +44,8 @@ export default function BookRide({ userData, setScreen, data }) {
       paymentMethod,
       totalFare,
     });
+
+    setScreen({NAME:'RIDE', DATA:{}});
   };
 
   return (

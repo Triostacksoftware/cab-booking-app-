@@ -6,6 +6,7 @@ import { Alert } from "react-native";
 import BottomBar from "./src/components/BottomBar";
 import BookRide from "./src/screens/BookRide";
 import ProfileScreen from "./src/screens/ProfileScreen";
+import MapRideScreen from "./src/screens/MapRideScreen";
 
 
 export default function App() {
@@ -91,15 +92,21 @@ export default function App() {
           />
         );
 
-        case "PROFILE":
-          return (
-            <ProfileScreen 
-              userData={user}
-              setScreen={setScreen}
-              setIsLoggedIn={setIsLoggedIn}
-            />
-          )
-
+      case "PROFILE":
+        return (
+          <ProfileScreen 
+            userData={user}
+            setScreen={setScreen}
+            setIsLoggedIn={setIsLoggedIn}
+            data={screen.DATA}
+          />
+        );
+      
+      case "RIDE":
+        return (
+          <MapRideScreen />
+        )
+        
       default:
         return null;
     }
@@ -108,7 +115,7 @@ export default function App() {
   return (
     <>
       {renderScreen()}
-      <BottomBar screen={screen} setScreen={setScreen} />
+      {screen.NAME=="RIDE"?'':<BottomBar screen={screen} setScreen={setScreen} />}
     </>
   );
 }
