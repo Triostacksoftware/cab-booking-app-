@@ -8,16 +8,21 @@ import {
   Modal,
   ScrollView,
 } from "react-native";
-import {Ionicons} from '@expo/vector-icons'
 
-import { BOTTOM_BAR_HEIGHT } from "../components/BottomBar";
+const BOTTOM_BAR_HEIGHT = 60;
 
-export default function HomeScreen({ navigation,setScreen }) {
+const ChevronDown = () => (
+  <Text style={{ fontSize: 16, color: '#999' }}>▼</Text>
+);
+
+export default function HomeScreen({ navigation, setScreen }) {
   const [destination, setDestination] = useState(null);
   const [customDestination, setCustomDestination] = useState("");
   const [showLocationOptions, setShowLocationOptions] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [rideType, setRideType] = useState(null);
+  const [destinationError, setDestinationError] = useState("");
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const popularLocations = [
     "Airport",
@@ -29,7 +34,36 @@ export default function HomeScreen({ navigation,setScreen }) {
 
   const finalDestination = destination || customDestination;
 
-  const isFormComplete = Boolean(finalDestination && rideType);
+  const validateDestination = (value) => {
+    if (!value || value.trim().length === 0) {
+      return "Please select or enter a destination";
+    }
+    if (value.trim().length < 3) {
+      return "Destination must be at least 3 characters";
+    }
+    return "";
+  };
+
+  const handleContinue = () => {
+    setHasInteracted(true);
+    const error = validateDestination(finalDestination);
+    
+    if (error) {
+      setDestinationError(error);
+      return;
+    }
+    
+    if (!rideType) {
+      return;
+    }
+
+    setScreen({
+      NAME: 'BOOK-RIDE',
+      DATA: { destination, rideType, customDestination }
+    });
+  };
+
+  const isFormComplete = finalDestination.trim().length >= 3 && rideType !== null;
 
   return (
     <View style={styles.container}>
@@ -39,7 +73,7 @@ export default function HomeScreen({ navigation,setScreen }) {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-          <View style={styles.topBar}>
+        <View style={styles.topBar}>
           <View style={styles.topBlock} />
           <View style={styles.topBlockSmall} />
         </View>
@@ -48,12 +82,19 @@ export default function HomeScreen({ navigation,setScreen }) {
           <TouchableOpacity
             style={styles.destinationHeader}
             onPress={() => setShowLocationOptions((prev) => !prev)}
+            activeOpacity={0.7}
           >
             <Text style={styles.destinationText}>
               {finalDestination || "Where To Go Today?"}
             </Text>
-            <Text style={styles.dropdownIcon}><Ionicons name="chevron-down" size={20} color="#444" /></Text>
+            <View style={styles.dropdownIcon}>
+              <ChevronDown />
+            </View>
           </TouchableOpacity>
+
+          {destinationError && hasInteracted ? (
+            <Text style={styles.errorText}>{destinationError}</Text>
+          ) : null}
 
           {showLocationOptions && (
             <View style={styles.optionsList}>
@@ -64,8 +105,10 @@ export default function HomeScreen({ navigation,setScreen }) {
                   onPress={() => {
                     setDestination(place);
                     setCustomDestination("");
+                    setDestinationError("");
                     setShowLocationOptions(false);
                   }}
+                  activeOpacity={0.6}
                 >
                   <Text style={styles.optionText}>{place}</Text>
                 </TouchableOpacity>
@@ -78,6 +121,9 @@ export default function HomeScreen({ navigation,setScreen }) {
                 onChangeText={(text) => {
                   setCustomDestination(text);
                   setDestination(null);
+                  if (hasInteracted) {
+                    setDestinationError(validateDestination(text));
+                  }
                 }}
                 style={styles.textInput}
               />
@@ -87,6 +133,7 @@ export default function HomeScreen({ navigation,setScreen }) {
           <TouchableOpacity
             style={styles.mapButton}
             onPress={() => setShowMapModal(true)}
+            activeOpacity={0.7}
           >
             <Text style={styles.mapButtonText}>Choose on Map</Text>
           </TouchableOpacity>
@@ -99,6 +146,7 @@ export default function HomeScreen({ navigation,setScreen }) {
               rideType === "shared" && styles.rideCardActive,
             ]}
             onPress={() => setRideType("shared")}
+            activeOpacity={0.7}
           >
             <Text
               style={[
@@ -114,6 +162,7 @@ export default function HomeScreen({ navigation,setScreen }) {
               rideType === "personal" && styles.rideCardActive,
             ]}
             onPress={() => setRideType("personal")}
+            activeOpacity={0.7}
           >
             <Text
               style={[
@@ -130,9 +179,8 @@ export default function HomeScreen({ navigation,setScreen }) {
             !isFormComplete && styles.continueButtonDisabled,
           ]}
           disabled={!isFormComplete}
-          onPress={()=>{
-            setScreen({NAME:'BOOK-RIDE', DATA:{destination, rideType, customDestination}})
-          }}
+          onPress={handleContinue}
+          activeOpacity={0.8}
         >
           <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
@@ -152,8 +200,10 @@ export default function HomeScreen({ navigation,setScreen }) {
               onPress={() => {
                 setDestination("Selected from Map");
                 setCustomDestination("");
+                setDestinationError("");
                 setShowMapModal(false);
               }}
+              activeOpacity={0.8}
             >
               <Text style={styles.confirmText}>Confirm Location</Text>
             </TouchableOpacity>
@@ -177,7 +227,7 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     alignItems: "center",
-    paddingBottom: BOTTOM_BAR_HEIGHT+20,
+    paddingBottom: BOTTOM_BAR_HEIGHT + 20,
   },
 
   topBar: {
@@ -227,6 +277,13 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
 
+  errorText: {
+    color: "#FF4444",
+    fontSize: 13,
+    marginBottom: 10,
+    paddingLeft: 4,
+  },
+
   optionsList: {
     backgroundColor: "#1A1A1A",
     borderRadius: 10,
@@ -253,6 +310,7 @@ const styles = StyleSheet.create({
     margin: 12,
     borderWidth: 1,
     borderColor: "#2A2A2A",
+    fontSize: 16,
   },
 
   mapButton: {

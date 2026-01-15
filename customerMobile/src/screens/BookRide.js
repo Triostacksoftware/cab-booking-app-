@@ -8,20 +8,35 @@ import {
   Modal,
   TextInput,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { FontAwesome } from "@expo/vector-icons";
+
+const Ionicons = ({ name, size, color }) => {
+  const icons = {
+    'arrow-back': '←',
+    'chevron-down': '▼',
+    'map-outline': '🗺️',
+    'logo-google': 'G',
+    'add': '+',
+    'remove': '−',
+  };
+  return <Text style={{ fontSize: size, color }}>{icons[name] || '•'}</Text>;
+};
+
+const FontAwesome = ({ name, size, color }) => {
+  return <Text style={{ fontSize: size, color }}>₹</Text>;
+};
 
 export default function BookRide({ userData, setScreen, data }) {
-  const [pickup, setPickup] = useState(data?.pickup || ""); // selected named pickup
+  const [pickup, setPickup] = useState(data?.pickup || "");
   const [customPickup, setCustomPickup] = useState("");
   const [showLocationOptions, setShowLocationOptions] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("UPI");
+  const [numberOfPeople, setNumberOfPeople] = useState(1);
 
   // Fake cost
   const sharedRideFare = 30;
   const personalRideFare = 100;
-  const totalFare = data.rideType=='shared'?30:100;
+  const totalFare = data.rideType === 'shared' ? 30 : 100;
 
   const popularLocations = [
     "Home",
@@ -31,6 +46,9 @@ export default function BookRide({ userData, setScreen, data }) {
   ];
 
   const finalPickup = pickup || customPickup;
+
+  // Max capacity based on ride type
+  const maxCapacity = data.rideType === 'shared' ? 2 : 4;
 
   const goBack = () => {
     setScreen({ NAME: "HOME", DATA: {} });
@@ -43,9 +61,22 @@ export default function BookRide({ userData, setScreen, data }) {
       rideType: data?.rideType,
       paymentMethod,
       totalFare,
+      numberOfPeople,
     });
 
-    setScreen({NAME:'RIDE', DATA:{}});
+    setScreen({ NAME: 'RIDE', DATA: {} });
+  };
+
+  const incrementPeople = () => {
+    if (numberOfPeople < maxCapacity) {
+      setNumberOfPeople(numberOfPeople + 1);
+    }
+  };
+
+  const decrementPeople = () => {
+    if (numberOfPeople > 1) {
+      setNumberOfPeople(numberOfPeople - 1);
+    }
   };
 
   return (
@@ -126,13 +157,57 @@ export default function BookRide({ userData, setScreen, data }) {
           </Text>
         </View>
 
+        {/* NUMBER OF PEOPLE */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Number of Passengers</Text>
+          
+          <View style={styles.peopleSelector}>
+            <TouchableOpacity
+              style={[
+                styles.peopleButton,
+                numberOfPeople === 1 && styles.peopleButtonDisabled
+              ]}
+              onPress={decrementPeople}
+              disabled={numberOfPeople === 1}
+            >
+              <Ionicons name="remove" size={20} color={numberOfPeople === 1 ? "#555" : "#fff"} />
+            </TouchableOpacity>
+
+            <View style={styles.peopleCount}>
+              <Text style={styles.peopleNumber}>{numberOfPeople}</Text>
+              <Text style={styles.peopleLabel}>
+                {numberOfPeople === 1 ? "passenger" : "passengers"}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.peopleButton,
+                numberOfPeople === maxCapacity && styles.peopleButtonDisabled
+              ]}
+              onPress={incrementPeople}
+              disabled={numberOfPeople === maxCapacity}
+            >
+              <Ionicons name="add" size={20} color={numberOfPeople === maxCapacity ? "#555" : "#fff"} />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.capacityText}>
+            Max capacity: {maxCapacity} passengers
+          </Text>
+        </View>
+
         {/* COST BREAKDOWN */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Fare Details</Text>
 
           <View style={styles.row}>
-            <Text style={styles.label}>{data.rideType=='shared'?"Shared Ride":"Personal Ride"}</Text>
-            <Text style={styles.value}>₹{data.rideType=='shared'?sharedRideFare:'100'}</Text>
+            <Text style={styles.label}>
+              {data.rideType === 'shared' ? "Shared Ride" : "Personal Ride"}
+            </Text>
+            <Text style={styles.value}>
+              ₹{data.rideType === 'shared' ? sharedRideFare : '100'}
+            </Text>
           </View>
 
           <View style={styles.divider} />
@@ -261,7 +336,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#1f1f1f",
     marginBottom: 30,
-    gap:10
+    gap: 10,
   },
 
   cardTitle: {
@@ -302,6 +377,54 @@ const styles = StyleSheet.create({
   valueText: {
     color: "#fff",
     fontSize: 15,
+  },
+
+  // NUMBER OF PEOPLE STYLES
+  peopleSelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+  },
+
+  peopleButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#1f1f1f",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#2f2f2f",
+  },
+
+  peopleButtonDisabled: {
+    backgroundColor: "#0a0a0a",
+    borderColor: "#1a1a1a",
+  },
+
+  peopleCount: {
+    alignItems: "center",
+    flex: 1,
+  },
+
+  peopleNumber: {
+    color: "#fff",
+    fontSize: 32,
+    fontWeight: "700",
+  },
+
+  peopleLabel: {
+    color: "#999",
+    fontSize: 13,
+    marginTop: 2,
+  },
+
+  capacityText: {
+    color: "#666",
+    fontSize: 12,
+    marginTop: 8,
+    textAlign: "center",
   },
 
   row: {
@@ -379,7 +502,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  /* New styles for location options & modal */
   optionsList: {
     backgroundColor: "#1A1A1A",
     borderRadius: 10,
