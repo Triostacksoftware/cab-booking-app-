@@ -19,6 +19,31 @@ type Props = {
   setIsLoggedIn: (v: boolean) => void;
 };
 
+// Mock user database - simulates backend
+const MOCK_USERS = {
+  "9876543210": {
+    fullName: "Rajesh Kumar",
+    mobileNumber: "9876543210",
+    vehicleNumber: "DL-1CA-1234",
+    vehicleCapacity: "4",
+    city: "Delhi"
+  },
+  "9876543211": {
+    fullName: "Amit Singh",
+    mobileNumber: "9876543211",
+    vehicleNumber: "DL-3CB-5678",
+    vehicleCapacity: "6",
+    city: "Delhi"
+  },
+  "9876543212": {
+    fullName: "Priya Sharma",
+    mobileNumber: "9876543212",
+    vehicleNumber: "DL-5CC-9012",
+    vehicleCapacity: "4",
+    city: "Noida"
+  }
+};
+
 export default function AuthScreen({ setIsLoggedIn }: Props) {
   const [mode, setMode] = useState<AuthMode>("LOGIN");
   const [showOTP, setShowOTP] = useState(false);
@@ -43,35 +68,36 @@ export default function AuthScreen({ setIsLoggedIn }: Props) {
     setShowOTP(true);
   };
 
-  const addUser = async ()=>{
-    const userData:User = {
-      fullName:name,
-      mobileNumber:mobile,
-      vehicleNumber:vehicleNumber,
-      vehicleCapacity,
-      city:city
-    }
-    console.log(`userData: ${userData}`)
-    await AsyncStorage.setItem("user", JSON.stringify(userData));
-  }
-
   const verifyOTP = async () => {
-  if (mode === "REGISTER") {
-    const userData: User = {
-      fullName: name,
-      mobileNumber: mobile,
-      vehicleNumber,
-      vehicleCapacity,
-      city,
-    };
-    await AsyncStorage.setItem("user", JSON.stringify(userData));
-  }
+    if (mode === "REGISTER") {
+      // Save new user data during registration
+      const userData: User = {
+        fullName: name,
+        mobileNumber: mobile,
+        vehicleNumber,
+        vehicleCapacity,
+        city,
+      };
+      await AsyncStorage.setItem("user", JSON.stringify(userData));
+    } else {
+      // LOGIN mode - fetch mock user data from "backend"
+      const mockUser = MOCK_USERS[mobile as keyof typeof MOCK_USERS];
+      
+      if (mockUser) {
+        // Simulate backend response - save user data to AsyncStorage
+        await AsyncStorage.setItem("user", JSON.stringify(mockUser));
+      } else {
+        alert("User not found. Please register or use a valid mobile number.");
+        setShowOTP(false);
+        setOtp("");
+        return;
+      }
+    }
 
-  await AsyncStorage.setItem("isLoggedIn", "true");
-  setShowOTP(false);
-  setIsLoggedIn(true);
-};
-
+    await AsyncStorage.setItem("isLoggedIn", "true");
+    setShowOTP(false);
+    setIsLoggedIn(true);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -93,9 +119,8 @@ export default function AuthScreen({ setIsLoggedIn }: Props) {
             <Input icon="person-outline" placeholder="Full name" value={name} onChangeText={setName} />
             <Input icon="location-outline" placeholder="City" value={city} onChangeText={setCity} />
             <Input
-              icon="people-outline"
+              icon="car-outline"
               placeholder="Vehicle Number"
-              keyboardType="number-pad"
               value={vehicleNumber}
               onChangeText={setVehicleNumber}
             />
@@ -116,6 +141,12 @@ export default function AuthScreen({ setIsLoggedIn }: Props) {
           value={mobile}
           onChangeText={setMobile}
         />
+
+        {isLogin && (
+          <Text style={styles.hintText}>
+            Demo: 9876543210, 9876543211, 9876543212
+          </Text>
+        )}
 
         <Pressable
           style={[
@@ -149,6 +180,9 @@ export default function AuthScreen({ setIsLoggedIn }: Props) {
             <Text style={styles.modalTitle}>Enter OTP</Text>
             <Text style={styles.modalSub}>
               Sent to +91 {mobile}
+            </Text>
+            <Text style={styles.modalHint}>
+              Use any 6-digit code for demo
             </Text>
 
             <TextInput
@@ -263,6 +297,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 
+  hintText: {
+    color: "#666",
+    fontSize: 11,
+    marginTop: 8,
+    marginLeft: 28,
+  },
+
   primaryBtn: {
     backgroundColor: "#fff",
     paddingVertical: 14,
@@ -311,6 +352,12 @@ const styles = StyleSheet.create({
   modalSub: {
     color: "#666",
     marginVertical: 6,
+  },
+
+  modalHint: {
+    color: "#999",
+    fontSize: 12,
+    marginTop: 2,
   },
 
   otpInput: {

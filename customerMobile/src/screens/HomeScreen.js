@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
   },
   modalTitle: {
-    color: "#FFF",
+    color: "#5c3b3bff",
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 14,

@@ -17,6 +17,7 @@ export default function Home({setScreen}) {
   const [incomingRide, setIncomingRide] = useState(false);
 
   useEffect(() => {
+    // AsyncStorage.clear();
     loadUser();
   }, []);
 
@@ -25,7 +26,7 @@ export default function Home({setScreen}) {
     if (raw) setUser(JSON.parse(raw));
   };
 
-  if (!user) {
+  if (!user?.fullName) {
     return (
       <View style={styles.center}>
         <Text style={{ color: "#888" }}>Loading driver…</Text>

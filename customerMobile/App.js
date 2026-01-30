@@ -7,6 +7,7 @@ import BottomBar from "./src/components/BottomBar";
 import BookRide from "./src/screens/BookRide";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import MapRideScreen from "./src/screens/MapRideScreen";
+import Wallet from "./src/screens/Wallet";
 
 
 export default function App() {
@@ -105,6 +106,15 @@ export default function App() {
       case "RIDE":
         return (
           <MapRideScreen
+            setScreen={setScreen}
+          />
+        )
+      
+      case "WALLET":
+        return (
+          <Wallet
+            userData={user}
+            setUser={setUser}
             setScreen={setScreen}
           />
         )

@@ -29,10 +29,10 @@ export default function App() {
 
   switch (screen) {
     case "HOME":
-      return <Home setScreen={setScreen} userData={userData} />;
+      return <Home setScreen={setScreen} />;
     
     case "ACTIVE_RIDE":
-      return <RideScreen setScreen={setScreen} userData={userData} />
+      return <RideScreen setScreen={setScreen} />
 
     default:
       return null;
