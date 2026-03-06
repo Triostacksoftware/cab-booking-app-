@@ -11,15 +11,18 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User } from "../helpers/types";
 
-export default function Home({setScreen}) {
-  const [user, setUser] = useState<User | null>(null);
+export default function Home({ setScreen, userData }: { setScreen: any, userData?: User }) {
+  const [user, setUser] = useState<User | null>(userData || null);
   const [online, setOnline] = useState(false);
   const [incomingRide, setIncomingRide] = useState(false);
 
   useEffect(() => {
-    // AsyncStorage.clear();
-    loadUser();
-  }, []);
+    if (userData) {
+      setUser(userData);
+    } else {
+      loadUser();
+    }
+  }, [userData]);
 
   const loadUser = async () => {
     const raw = await AsyncStorage.getItem("user");

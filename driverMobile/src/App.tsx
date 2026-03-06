@@ -15,9 +15,14 @@ export default function App() {
     const bootstrap = async () => {
       const loggedIn = await AsyncStorage.getItem("isLoggedIn");
       if (loggedIn === "true") {
-        setIsLoggedIn(true);
         const rawUser = await AsyncStorage.getItem("user");
-        if (rawUser) setUserData(JSON.parse(rawUser));
+        if (rawUser) {
+          setUserData(JSON.parse(rawUser));
+          setIsLoggedIn(true);
+        } else {
+          // Fallback if no user data found
+          setIsLoggedIn(false);
+        }
       }
     };
     bootstrap();
@@ -29,8 +34,8 @@ export default function App() {
 
   switch (screen) {
     case "HOME":
-      return <Home setScreen={setScreen} />;
-    
+      return <Home setScreen={setScreen} userData={userData} />;
+
     case "ACTIVE_RIDE":
       return <RideScreen setScreen={setScreen} />
 
